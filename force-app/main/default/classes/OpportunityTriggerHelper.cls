@@ -1,4 +1,5 @@
-public with sharing class OpportunityTriggerHelper {
+public class OpportunityTriggerHelper {
+  @AuraEnabled
   public static void addTasks(
     Map<Id, Opportunity> oldOppsMap,
     Map<Id, Opportunity> updatedOppsMap,
