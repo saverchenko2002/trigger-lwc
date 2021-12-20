@@ -25,8 +25,6 @@ public with sharing class OpportunityTriggerHelper {
       relevantOppIds.add(manualOppId);
     }
 
-    system.debug(relevantOppIds.size());
-
     List<Opportunity_Subject_Entry__c> relevantSubjects = [
       SELECT Id, Subject_Entry__c
       FROM Opportunity_Subject_Entry__c
@@ -53,8 +51,6 @@ public with sharing class OpportunityTriggerHelper {
         tasksToInsert.addAll(createDefaultTasksBundle(relevantSubjects, opp, taskStatus, taskPriority));
       }
     }
-
-    system.debug(tasksToInsert.size());
 
     insert tasksToInsert;
   }
