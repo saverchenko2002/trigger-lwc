@@ -4,10 +4,13 @@
 4. The code should by dynamic and not have any hard coded logic about task subjects, or number of tasks like if(red), if(task1) it should written in a way that is easy to add more subject names without the need of much code modification
 5. The apex logic should also be able to be called at the opportunity page as an action button to be able to be run manually
 
-##                                     PACKAGE DEMO PREREQUISITES 
+## PACKAGE DEMO PREREQUISITES
+
 1. Move to "Opportunity Subject Entries" tab and create a few instances with different values in "Subject Entry" field.
 2. In setup move to Opportunity page layout and add "Add tasks" quick action from Lightning Actions list to Opportunity layout actions.
-##                                           DEMO STEPS
+
+## DEMO STEPS
+
 1. Move to opportunities tab and create new opportunity record.
-2. Change its stage name to "Needs Analysis" or press "Add tasks" button. If opportunity has no active tasks with the subject values, which were written in prerequisites, respective tasks will be created.                                         
-3. You can repiet demo step 2 procedure with partially selected completed tasks or with all active tasks to make sure it work safely. 
+2. Change its stage name to "Needs Analysis" or press "Add tasks" button. If opportunity has no active tasks with the subject values, which were written in prerequisites, respective tasks will be created.
+3. You can repeat the procedure of demo step 2 with partially active tasks with subjects values from Subject Entry field values of Opportunity Subject Entries records or with all active tasks to make sure that it works safely.
