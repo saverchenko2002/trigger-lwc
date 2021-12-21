@@ -1,5 +1,5 @@
-trigger OpportunityTrigger on Opportunity(before update) {
-  if (Trigger.isBefore && Trigger.isUpdate) {
-    OpportunityTriggerHandler.onBeforeUpdate(Trigger.oldMap, Trigger.newMap);
+trigger OpportunityTrigger on Opportunity(after update) {
+  if (Trigger.isAfter && Trigger.isUpdate) {
+    OpportunityTriggerHandler.onAfterUpdate(Trigger.oldMap, Trigger.new);
   }
 }

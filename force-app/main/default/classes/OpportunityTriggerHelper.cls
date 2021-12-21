@@ -1,118 +1,84 @@
 public class OpportunityTriggerHelper {
   private static final String triggeredStageValue = 'Needs Analysis';
 
-  public static void getIdsAndAddTasks(Map<Id, Opportunity> oldOppsMap, Map<Id, Opportunity> updatedOppsMap) {
+  public static void getIdsAndAddTasks(Map<Id, Opportunity> oldOppsMap, List<Opportunity> updatedOpps) {
     List<Id> relevantOppIds = new List<Id>();
 
-    for (Id oppId : oldOppsMap.keySet()) {
-      if (
-        oldOppsMap.get(oppId).StageName != triggeredStageValue &&
-        updatedOppsMap.get(oppId).StageName == triggeredStageValue
-      ) {
-        relevantOppIds.add(oppId);
+    for (Opportunity opp : updatedOpps) {
+      Opportunity oldOpp = oldOppsMap.get(opp.Id);
+      if (oldOpp != null && oldOpp.StageName != opp.StageName && opp.StageName == triggeredStageValue) {
+        relevantOppIds.add(opp.Id);
       }
     }
 
-    if (relevantOppIds.size() > 0) {
+    if (!relevantOppIds.isEmpty()) {
       addTasks(relevantOppIds);
     }
   }
 
   @InvocableMethod(label='addTasks')
   public static void addTasks(List<Id> oppIds) {
-    List<String> nonRelevantTaskStatuses = new List<String>{ 'Completed' };
-
-    final String taskStatus = 'Not Started';
-    final String taskPriority = 'Normal';
+    final String nonRelevantTaskStatus = 'Completed';
 
     List<Opportunity_Subject_Entry__c> relevantSubjects = [
       SELECT Id, Subject_Entry__c
       FROM Opportunity_Subject_Entry__c
     ];
 
-    List<Opportunity> relevantOpps = [
-      SELECT
-        Id,
-        StageName,
-        OwnerId,
-        (SELECT Id, Subject, Status FROM Tasks WHERE Status NOT IN :nonRelevantTaskStatuses)
-      FROM Opportunity
-      WHERE Id IN :oppIds
+    List<String> relevantSubjectsStringList = new List<String>();
+    for (Opportunity_Subject_Entry__c oppSubjectEntry : relevantSubjects) {
+      relevantSubjectsStringList.add(oppSubjectEntry.Subject_Entry__c);
+    }
+
+    List<Task> relevantTasks = [
+      SELECT Id, WhatId, Status, Subject
+      FROM Task
+      WHERE WhatId IN :oppIds AND Subject IN :relevantSubjectsStringList AND Status != :nonRelevantTaskStatus
     ];
 
     List<Task> tasksToInsert = new List<Task>();
 
-    for (Opportunity opp : relevantOpps) {
-      if (opp.Tasks.size() > 0) {
-        tasksToInsert.addAll(
-          createTasksBundleBasedOnExistingTasks(relevantSubjects, opp, taskStatus, taskPriority)
-        );
-      } else {
-        tasksToInsert.addAll(createDefaultTasksBundle(relevantSubjects, opp, taskStatus, taskPriority));
-      }
+    for (Id oppId : oppIds) {
+      List<Task> oppRelatedTasks = getOppTasks(oppId, relevantTasks);
+      tasksToInsert.addAll(createTasksBundle(relevantSubjects, oppId, oppRelatedTasks));
     }
 
     insert tasksToInsert;
   }
 
-  private static List<Task> createDefaultTasksBundle(
+  private static List<Task> createTasksBundle(
     List<Opportunity_Subject_Entry__c> relevantSubjects,
-    Opportunity opp,
-    String taskStatus,
-    String taskPriority
+    Id oppId,
+    List<Task> oppRelatedTasks
   ) {
-    List<Task> taskList = new List<Task>();
+    List<Task> tasksList = new List<Task>();
+
     for (Opportunity_Subject_Entry__c ose : relevantSubjects) {
-      taskList.add(
-        new Task(
-          Subject = ose.Subject_entry__c,
-          Status = taskStatus,
-          Priority = taskPriority,
-          WhatId = opp.Id,
-          OwnerId = opp.OwnerId
-        )
-      );
+      if (!existsBySubject(ose.Subject_Entry__c, oppRelatedTasks)) {
+        tasksList.add(new Task(Subject = ose.Subject_Entry__c, WhatId = oppId));
+      }
     }
-    return taskList;
+
+    return tasksList;
   }
 
-  private static List<Task> createTasksBundleBasedOnExistingTasks(
-    List<Opportunity_Subject_Entry__c> relevantSubjects,
-    Opportunity opp,
-    String taskStatus,
-    String taskPriority
-  ) {
-    List<Task> taskList = new List<Task>();
+  private static List<Task> getOppTasks(Id oppId, List<Task> allTasksList) {
+    List<Task> relevantOppTasksList = new List<Task>();
 
-    Map<String, Boolean> taskExistenceBySubjectMap = new Map<String, Boolean>();
-    for (Opportunity_Subject_Entry__c ose : relevantSubjects) {
-      taskExistenceBySubjectMap.put(ose.Subject_Entry__c, false);
-    }
-
-    for (Opportunity_Subject_Entry__c ose : relevantSubjects) {
-      for (Task existingTask : opp.Tasks) {
-        if (existingTask.Subject == ose.Subject_Entry__c) {
-          taskExistenceBySubjectMap.put(existingTask.Subject, true);
-          break;
-        }
+    for (Task tsk : allTasksList) {
+      if (tsk.WhatId == oppId) {
+        relevantOppTasksList.add(tsk);
       }
     }
+    return relevantOppTasksList;
+  }
 
-    for (String subject : taskExistenceBySubjectMap.keySet()) {
-      if (taskExistenceBySubjectMap.get(subject)) {
-        continue;
-      } else {
-        taskList.add(
-          new Task(
-            Subject = subject,
-            Status = taskStatus,
-            Priority = taskPriority,
-            WhatId = opp.Id,
-            OwnerId = opp.OwnerId
-          )
-        );
+  private static Boolean existsBySubject(String subjectEntry, List<Task> oppTasks) {
+    for (Task tsk : oppTasks) {
+      if (tsk.Subject == subjectEntry) {
+        return true;
       }
     }
-    return taskList;
+    return false;
   }
 }
