@@ -10,4 +10,4 @@
 ##                                           DEMO STEPS
 1. Move to opportunities tab and create new opportunity record.
 2. Change its stage name to "Needs Analysis"/press "Add tasks" button. If opportunity has no active tasks with the subject values, which were written in prerequisites, respective tasks will be created.                                         
-3. You can repiet demo step 2 procedure with partially selected completed tasks or with all the tasks to make sure it work safely. 
+3. You can repiet demo step 2 procedure with partially selected completed tasks or with all active tasks to make sure it work safely. 
