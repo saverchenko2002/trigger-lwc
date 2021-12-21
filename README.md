@@ -6,8 +6,9 @@
 
 ## PACKAGE DEMO PREREQUISITES
 
-1. Move to "Opportunity Subject Entries" tab and create a few instances with different values in "Subject Entry" field.
-2. In setup move to Opportunity page layout and add "Add tasks" quick action from Lightning Actions list to Opportunity layout actions.
+1. Assign yourself with "Demo Set" Permission Set.
+2. Move to "Opportunity Subject Entries" tab and create a few instances with different values in "Subject Entry" field.
+3. In setup move to Opportunity page layout and add "Add tasks" quick action from Lightning Actions list to Opportunity layout actions.
 
 ## DEMO STEPS
 
