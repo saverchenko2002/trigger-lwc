@@ -13,4 +13,4 @@
 
 1. Move to opportunities tab and create new opportunity record.
 2. Change its stage name to "Needs Analysis" or press "Add tasks" button. If opportunity has no active tasks with the subject values, which were written in prerequisites, respective tasks will be created.
-3. You can repeat the procedure of demo step 2 with partially active tasks with subjects values from Subject Entry field values of Opportunity Subject Entries records or with all active tasks to make sure that it works safely.
+3. You can repeat the procedure of Demo Step 2 with some of the active tasks or with all the active tasks to ensure that it works safely.
