@@ -2,6 +2,7 @@
 private class OpportunityTriggerHelperTest {
   @TestSetup
   static void makeData() {
+    List<String> subjects = new List<String>{ 'green', 'red', 'blue' };
     Profile profileId = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
 
     User testUser = new User(
@@ -25,86 +26,47 @@ private class OpportunityTriggerHelperTest {
     RecordType rt = [SELECT Id FROM RecordType WHERE SObjectType = 'Opportunity' AND Name = 'Master'];
 
     List<Opportunity> opps = new List<Opportunity>();
+    List<Opportunity_Subject_Entry__c> oses = new List<Opportunity_Subject_Entry__c>();
+    List<Task> testTasks = new List<Task>();
 
-    Opportunity opp1 = new Opportunity(
-      Name = 'Test1',
-      RecordTypeId = rt.Id,
-      Type = 'Value Proposition',
-      CloseDate = Date.today(),
-      StageName = 'Created',
-      AccountId = acc.Id,
-      OwnerId = testUser.Id
-    );
+    for (Integer i = 0; i < 3; i++) {
+      Opportunity opp = new Opportunity(
+        Name = 'Test' + i,
+        RecordTypeId = rt.Id,
+        Type = 'Value Proposition',
+        CloseDate = Date.today(),
+        StageName = 'Created',
+        AccountId = acc.Id,
+        OwnerId = testUser.Id
+      );
+      opps.add(opp);
 
-    Opportunity opp2 = new Opportunity(
-      Name = 'Test2',
-      RecordTypeId = rt.Id,
-      Type = 'Value Proposition',
-      CloseDate = Date.today(),
-      StageName = 'Created',
-      AccountId = acc.Id,
-      OwnerId = testUser.Id
-    );
-
-    Opportunity opp3 = new Opportunity(
-      Name = 'Test3',
-      RecordTypeId = rt.Id,
-      Type = 'Value Proposition',
-      CloseDate = Date.today(),
-      StageName = 'Created',
-      AccountId = acc.Id,
-      OwnerId = testUser.Id
-    );
-
-    opps.add(opp1);
-    opps.add(opp2);
-    opps.add(opp3);
+      Opportunity_Subject_Entry__c ose = new Opportunity_Subject_Entry__c(Subject_Entry__c = subjects[i]);
+      oses.add(ose);
+    }
 
     insert opps;
-
-    List<Opportunity_Subject_Entry__c> oses = new List<Opportunity_Subject_Entry__c>();
-
-    oses.add(new Opportunity_Subject_Entry__c(Subject_Entry__c = 'green'));
-    oses.add(new Opportunity_Subject_Entry__c(Subject_Entry__c = 'red'));
-    oses.add(new Opportunity_Subject_Entry__c(Subject_Entry__c = 'blue'));
     insert oses;
 
-    List<Task> testTasks = new List<Task>();
-    Task tsk1 = new Task(
-      Subject = oses[0].Subject_Entry__c,
-      Status = 'Open',
-      Priority = 'Normal',
-      WhatId = opp1.Id,
-      OwnerId = testUser.Id
-    );
-
-    Task tsk2 = new Task(
-      Subject = oses[1].Subject_Entry__c,
-      Status = 'Open',
-      Priority = 'Normal',
-      WhatId = opp1.Id,
-      OwnerId = testUser.Id
-    );
-
-    Task tsk3 = new Task(
-      Subject = oses[2].Subject_Entry__c,
-      Status = 'Open',
-      Priority = 'Normal',
-      WhatId = opp1.Id,
-      OwnerId = testUser.Id
-    );
+    for (Integer i = 0; i < 3; i++) {
+      Task tsk = new Task(
+        Subject = subjects[i],
+        Status = 'Open',
+        Priority = 'Normal',
+        WhatId = opps[0].Id,
+        OwnerId = testUser.Id
+      );
+      testTasks.add(tsk);
+    }
 
     Task tsk4 = new Task(
       Subject = oses[1].Subject_Entry__c,
       Status = 'Open',
       Priority = 'Normal',
-      WhatId = opp2.Id,
+      WhatId = opps[1].Id,
       OwnerId = testUser.Id
     );
 
-    testTasks.add(tsk1);
-    testTasks.add(tsk2);
-    testTasks.add(tsk3);
     testTasks.add(tsk4);
 
     insert testTasks;
