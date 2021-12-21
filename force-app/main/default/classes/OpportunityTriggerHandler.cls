@@ -1,5 +1,6 @@
 public with sharing class OpportunityTriggerHandler {
-  public void onBeforeUpdate(Map<Id, Opportunity> oldOppsMap, Map<Id, Opportunity> updatedOppsMap) {
-    OpportunityTriggerHelper.addTasks(oldOppsMap, updatedOppsMap, null);
+  public static void onBeforeUpdate(Map<Id, Opportunity> oldOppsMap, Map<Id, Opportunity> updatedOppsMap) {
+    List<Id> oppIdsStageChange = OpportunityTriggerHelper.retrieveRelevantIds(oldOppsMap, updatedOppsMap);
+    OpportunityTriggerHelper.addTasks(oppIdsStageChange);
   }
 }

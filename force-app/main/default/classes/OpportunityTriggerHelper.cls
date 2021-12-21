@@ -1,30 +1,16 @@
 public class OpportunityTriggerHelper {
-  @AuraEnabled
-  public static void addTasks(
-    Map<Id, Opportunity> oldOppsMap,
-    Map<Id, Opportunity> updatedOppsMap,
-    Id manualOppId
-  ) {
+  private static final String triggeredStageValue = 'Needs Analysis';
+
+  @InvocableMethod(label='addTasks')
+  public static void addTasks(List<Id> oppIds) {
+    if (oppIds.isEmpty()) {
+      return;
+    }
+
     List<String> nonRelevantTaskStatuses = new List<String>{ 'Completed' };
 
-    final String triggeredStageValue = 'Needs Analysis';
     final String taskStatus = 'Not Started';
     final String taskPriority = 'Normal';
-
-    List<Id> relevantOppIds = new List<Id>();
-
-    if (manualOppId == null) {
-      for (Id oppId : oldOppsMap.keySet()) {
-        if (
-          oldOppsMap.get(oppId).StageName != triggeredStageValue &&
-          updatedOppsMap.get(oppId).StageName == triggeredStageValue
-        ) {
-          relevantOppIds.add(oppId);
-        }
-      }
-    } else {
-      relevantOppIds.add(manualOppId);
-    }
 
     List<Opportunity_Subject_Entry__c> relevantSubjects = [
       SELECT Id, Subject_Entry__c
@@ -38,7 +24,7 @@ public class OpportunityTriggerHelper {
         OwnerId,
         (SELECT Id, Subject, Status FROM Tasks WHERE Status NOT IN :nonRelevantTaskStatuses)
       FROM Opportunity
-      WHERE Id IN :relevantOppIds
+      WHERE Id IN :oppIds
     ];
 
     List<Task> tasksToInsert = new List<Task>();
@@ -64,7 +50,15 @@ public class OpportunityTriggerHelper {
   ) {
     List<Task> taskList = new List<Task>();
     for (Opportunity_Subject_Entry__c ose : relevantSubjects) {
-      taskList.add(createTask(ose.Subject_Entry__c, taskStatus, taskPriority, opp.Id, opp.OwnerId));
+      taskList.add(
+        new Task(
+          Subject = ose.Subject_entry__c,
+          Status = taskStatus,
+          Priority = taskPriority,
+          WhatId = opp.Id,
+          OwnerId = opp.OwnerId
+        )
+      );
     }
     return taskList;
   }
@@ -95,19 +89,34 @@ public class OpportunityTriggerHelper {
       if (taskExistenceBySubjectMap.get(subject)) {
         continue;
       } else {
-        taskList.add(createTask(subject, taskStatus, taskPriority, opp.Id, opp.OwnerId));
+        taskList.add(
+          new Task(
+            Subject = subject,
+            Status = taskStatus,
+            Priority = taskPriority,
+            WhatId = opp.Id,
+            OwnerId = opp.OwnerId
+          )
+        );
       }
     }
     return taskList;
   }
 
-  private static Task createTask(String subject, String status, String priority, Id whatId, Id ownerId) {
-    return new Task(
-      Subject = subject,
-      Status = status,
-      Priority = priority,
-      WhatId = whatId,
-      OwnerId = ownerId
-    );
+  public static List<Id> retrieveRelevantIds(
+    Map<Id, Opportunity> oldOppsMap,
+    Map<Id, Opportunity> updatedOppsMap
+  ) {
+    List<Id> relevantOppIds = new List<Id>();
+
+    for (Id oppId : oldOppsMap.keySet()) {
+      if (
+        oldOppsMap.get(oppId).StageName != triggeredStageValue &&
+        updatedOppsMap.get(oppId).StageName == triggeredStageValue
+      ) {
+        relevantOppIds.add(oppId);
+      }
+    }
+    return relevantOppIds;
   }
 }
