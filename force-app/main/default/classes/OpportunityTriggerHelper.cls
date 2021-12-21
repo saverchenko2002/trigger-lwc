@@ -1,12 +1,25 @@
 public class OpportunityTriggerHelper {
   private static final String triggeredStageValue = 'Needs Analysis';
 
-  @InvocableMethod(label='addTasks')
-  public static void addTasks(List<Id> oppIds) {
-    if (oppIds.isEmpty()) {
-      return;
+  public static void getIdsAndAddTasks(Map<Id, Opportunity> oldOppsMap, Map<Id, Opportunity> updatedOppsMap) {
+    List<Id> relevantOppIds = new List<Id>();
+
+    for (Id oppId : oldOppsMap.keySet()) {
+      if (
+        oldOppsMap.get(oppId).StageName != triggeredStageValue &&
+        updatedOppsMap.get(oppId).StageName == triggeredStageValue
+      ) {
+        relevantOppIds.add(oppId);
+      }
     }
 
+    if (relevantOppIds.size() > 0) {
+      addTasks(relevantOppIds);
+    }
+  }
+
+  @InvocableMethod(label='addTasks')
+  public static void addTasks(List<Id> oppIds) {
     List<String> nonRelevantTaskStatuses = new List<String>{ 'Completed' };
 
     final String taskStatus = 'Not Started';
@@ -101,22 +114,5 @@ public class OpportunityTriggerHelper {
       }
     }
     return taskList;
-  }
-
-  public static List<Id> retrieveRelevantIds(
-    Map<Id, Opportunity> oldOppsMap,
-    Map<Id, Opportunity> updatedOppsMap
-  ) {
-    List<Id> relevantOppIds = new List<Id>();
-
-    for (Id oppId : oldOppsMap.keySet()) {
-      if (
-        oldOppsMap.get(oppId).StageName != triggeredStageValue &&
-        updatedOppsMap.get(oppId).StageName == triggeredStageValue
-      ) {
-        relevantOppIds.add(oppId);
-      }
-    }
-    return relevantOppIds;
   }
 }
